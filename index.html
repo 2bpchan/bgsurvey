@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board Game Tier Survey</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --panel:#ffffff; --ink:#1d2027; --muted:#6b7280;
+    --line:#e3e6eb; --accent:#4f46e5; --accent-ink:#ffffff; --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 18px rgba(0,0,0,.05);
+    --S:#ff5c5c; --A:#ff9f43; --B:#ffd93d; --C:#54cc72; --D:#4db8ff; --F:#a38bff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15171c; --panel:#1e2128; --ink:#e8eaed; --muted:#9aa2b1;
+      --line:#31353f; --accent:#7c74ff; --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.45; -webkit-font-smoothing:antialiased;
+  }
+  header.bar{
+    position:sticky; top:0; z-index:20; background:color-mix(in srgb,var(--panel) 92%, transparent);
+    backdrop-filter:saturate(1.4) blur(8px); border-bottom:1px solid var(--line); box-shadow:var(--shadow);
+  }
+  .bar-inner{max-width:1120px; margin:0 auto; padding:12px 20px; display:flex; flex-wrap:wrap; gap:12px 18px; align-items:center;}
+  .bar h1{font-size:17px; margin:0; font-weight:700; letter-spacing:.2px; white-space:nowrap;}
+  .bar h1 span{color:var(--muted); font-weight:500;}
+  .grow{flex:1 1 40px}
+  .name-field{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
+  .name-field input{
+    font:inherit; font-size:14px; color:var(--ink); background:var(--bg); border:1px solid var(--line);
+    border-radius:8px; padding:6px 10px; min-width:150px;
+  }
+  .progress{font-size:13px; color:var(--muted); white-space:nowrap;}
+  .progress b{color:var(--ink)}
+  button.btn{
+    font:inherit; font-size:13.5px; font-weight:600; cursor:pointer; border-radius:9px; padding:8px 14px;
+    border:1px solid var(--line); background:var(--panel); color:var(--ink); transition:.12s;
+  }
+  button.btn:hover{border-color:var(--accent)}
+  button.btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+  button.btn.ghost{background:transparent}
+  main{max-width:1120px; margin:0 auto; padding:22px 20px 80px;}
+  .intro{color:var(--muted); font-size:13.5px; margin:4px 2px 20px; max-width:760px;}
+  .legend{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 22px;}
+  .legend .chip{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:4px 10px 4px 5px; background:var(--panel);}
+  .legend .sw{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-weight:800;font-size:11px;color:#1a1a1a;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px;}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; display:flex; gap:14px;
+    box-shadow:var(--shadow); transition:border-color .15s;
+  }
+  .card.done{border-color:color-mix(in srgb,var(--C) 55%, var(--line));}
+  .thumb{flex:0 0 96px; width:96px; height:128px; border-radius:10px; overflow:hidden; background:var(--bg);
+    border:1px solid var(--line); position:relative;}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .ph{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:8px; gap:6px; background:var(--bg);}
+  .ph[hidden]{display:none;}   /* actually hide it when an image loaded (class display would otherwise win) */
+  .ph .pname{font-size:12px; font-weight:700; color:var(--ink); line-height:1.2;}
+  .ph .pnote{font-size:9.5px; color:var(--muted); word-break:break-all;}
+  .card .body{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:9px;}
+  .card h3{margin:0; font-size:15.5px; font-weight:700; display:flex; align-items:center; gap:8px;}
+  .card h3 .num{font-size:11px; font-weight:700; color:var(--muted); background:var(--bg); border:1px solid var(--line);
+    border-radius:6px; padding:1px 6px;}
+  .cat{display:flex; flex-direction:column; gap:4px;}
+  .cat .clabel{font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px;}
+  .tiers{display:grid; grid-template-columns:repeat(6,1fr); gap:5px;}
+  .tier{
+    font:inherit; font-weight:800; font-size:13px; cursor:pointer; border-radius:8px; padding:7px 0; text-align:center;
+    border:1.5px solid var(--line); background:var(--bg); color:var(--muted); transition:.1s; user-select:none;
+  }
+  .tier:hover{color:var(--ink); border-color:var(--muted);}
+  .tier.on{color:#141414; border-color:transparent; box-shadow:0 1px 4px rgba(0,0,0,.18);}
+  .tier[data-t="S"].on{background:var(--S)} .tier[data-t="A"].on{background:var(--A)}
+  .tier[data-t="B"].on{background:var(--B)} .tier[data-t="C"].on{background:var(--C)}
+  .tier[data-t="D"].on{background:var(--D)} .tier[data-t="F"].on{background:var(--F)}
+  footer.note{max-width:1120px;margin:0 auto;padding:0 20px;color:var(--muted);font-size:12px;}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); opacity:0;
+    background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:10px; font-size:13.5px; font-weight:600;
+    box-shadow:var(--shadow); transition:.2s; pointer-events:none; z-index:50;}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  @media (max-width:520px){ .thumb{flex-basis:80px;width:80px;height:108px} .bar h1 span{display:none} }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-inner">
+    <h1>🎲 Board Game Tiers <span>· rank &amp; export</span></h1>
+    <div class="name-field"><label for="who">Rater</label><input id="who" type="text" placeholder="your name" autocomplete="off"></div>
+    <div class="grow"></div>
+    <div class="progress" id="progress">0 / 0 fully rated</div>
+    <button class="btn primary" id="export">Export CSV</button>
+    <button class="btn ghost" id="clear">Reset</button>
+  </div>
+</header>
+
+<main>
+  <p class="intro">
+    Rate each game on three tiers — <b>S</b> (best) down to <b>F</b> (worst). Everything saves automatically in this
+    browser and works fully offline. Tap <b>Export CSV</b> anytime for a spreadsheet of your ratings.
+  </p>
+  <div class="legend" id="legend"></div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer class="note">
+  Images are stored locally in <code>images/</code>. Cards showing a striped placeholder need an image added manually —
+  drop a file named <code>&lt;slug&gt;.png</code> into the <code>images/</code> folder (the slug is shown on the placeholder).
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---- data ---------------------------------------------------------------- */
+const TIERS = ["S","A","B","C","D","F"];
+const CATS = [
+  {key:"eatability",    label:"Convenience"},
+  {key:"replayability", label:"Replayability"},
+  {key:"overall",       label:"Overall Enjoyment"}
+];
+// order matches games.txt; slug = image filename in images/<slug>.png
+const GAMES = [
+  {name:"Exploding Kittens", slug:"exploding-kittens"},
+  {name:"Love Letter (OG)", slug:"love-letter-og"},
+  {name:"Love Letter 2", slug:"love-letter-2"},
+  {name:"Sandbag", slug:"sandbag"},
+  {name:"Scout", slug:"scout"},
+  {name:"Startups", slug:"startups"},
+  {name:"Moving Wild", slug:"moving-wild"},
+  {name:"Seers Catalog", slug:"seers-catalog"},
+  {name:"Mountain Photographer", slug:"mountain-photographer"},
+  {name:"Meow", slug:"meow"},
+  {name:"Lumberjacks", slug:"lumberjacks"},
+  {name:"Infiltraitors", slug:"infiltraitors"},
+  {name:"No Loose Ends", slug:"no-loose-ends"},
+  {name:"VIVO", slug:"vivo"},
+  {name:"Card Bullet", slug:"card-bullet"},
+  {name:"Tiger and Dragon", slug:"tiger-and-dragon"},
+  {name:"Sea Salt and Paper", slug:"sea-salt-and-paper"},
+  {name:"Daifugo", slug:"daifugo"},
+  {name:"Matchstick Daifugo", slug:"matchstick-daifugo"},
+  {name:"MOJO", slug:"mojo"},
+  {name:"Skull", slug:"skull"},
+  {name:"Spades", slug:"spades"},
+  {name:"Maskmen", slug:"maskmen"},
+  {name:"Gachapon", slug:"gachapon"},
+  {name:"Odin", slug:"odin"},
+  {name:"Movies", slug:"movies"},
+  {name:"Gods", slug:"gods"},
+  {name:"Shards", slug:"shards"},
+  {name:"Pirates", slug:"pirates"},
+  {name:"Mofuchip", slug:"mofuchip"},
+  {name:"67 (Flip Seven)", slug:"flip-seven"},
+  {name:"Beer Mug Dice", slug:"beer-mug-dice"},
+  {name:"Kobayakawa", slug:"kobayakawa"},
+  {name:"Warp 99", slug:"warp-99"}
+];
+
+/* ---- state --------------------------------------------------------------- */
+const STORE_KEY = "bgsurvey_v1";
+let state = {who:"", ratings:{}};
+try{ const s = JSON.parse(localStorage.getItem(STORE_KEY)); if(s && s.ratings) state = s; }catch(e){}
+
+function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ---- build legend -------------------------------------------------------- */
+const legend = document.getElementById("legend");
+TIERS.forEach(t=>{
+  const c = document.createElement("div"); c.className="chip";
+  c.innerHTML = `<span class="sw" style="background:var(--${t})">${t}</span>${
+    ({S:"Best",A:"Great",B:"Good",C:"Okay",D:"Meh",F:"Nope"})[t]}`;
+  legend.appendChild(c);
+});
+
+/* ---- build cards --------------------------------------------------------- */
+const grid = document.getElementById("grid");
+GAMES.forEach((g,i)=>{
+  const card = document.createElement("div");
+  card.className = "card"; card.dataset.slug = g.slug;
+
+  const thumb = document.createElement("div"); thumb.className="thumb";
+  const img = document.createElement("img");
+  img.alt = g.name; img.loading="lazy"; img.src = `images/${g.slug}.png`;
+  const ph = document.createElement("div"); ph.className="ph"; ph.hidden = true;
+  ph.innerHTML = `<span class="pname">${g.name}</span><span class="pnote">images/${g.slug}.png</span>`;
+  img.onerror = ()=>{ img.style.display="none"; ph.hidden=false; };
+  thumb.appendChild(img); thumb.appendChild(ph);
+
+  const body = document.createElement("div"); body.className="body";
+  body.innerHTML = `<h3><span class="num">${i+1}</span>${g.name}</h3>`;
+
+  CATS.forEach(cat=>{
+    const wrap = document.createElement("div"); wrap.className="cat";
+    const lab = document.createElement("div"); lab.className="clabel"; lab.textContent = cat.label;
+    const row = document.createElement("div"); row.className="tiers";
+    TIERS.forEach(t=>{
+      const b = document.createElement("button");
+      b.type="button"; b.className="tier"; b.dataset.t=t; b.textContent=t;
+      b.addEventListener("click", ()=> setRating(g.slug, cat.key, t, row, card));
+      row.appendChild(b);
+    });
+    wrap.appendChild(lab); wrap.appendChild(row);
+    body.appendChild(wrap);
+    // restore
+    const cur = state.ratings?.[g.slug]?.[cat.key];
+    if(cur){ const bb = row.querySelector(`.tier[data-t="${cur}"]`); if(bb) bb.classList.add("on"); }
+  });
+
+  card.appendChild(thumb); card.appendChild(body);
+  grid.appendChild(card);
+  updateCardDone(card);
+});
+
+function setRating(slug, cat, tier, row, card){
+  state.ratings[slug] = state.ratings[slug] || {};
+  if(state.ratings[slug][cat] === tier){        // click again to clear
+    delete state.ratings[slug][cat];
+    row.querySelectorAll(".tier").forEach(b=>b.classList.remove("on"));
+  }else{
+    state.ratings[slug][cat] = tier;
+    row.querySelectorAll(".tier").forEach(b=>b.classList.toggle("on", b.dataset.t===tier));
+  }
+  save(); updateCardDone(card); updateProgress();
+}
+
+function isDone(slug){
+  const r = state.ratings[slug]; return r && CATS.every(c=>r[c.key]);
+}
+function updateCardDone(card){ card.classList.toggle("done", isDone(card.dataset.slug)); }
+function updateProgress(){
+  const n = GAMES.filter(g=>isDone(g.slug)).length;
+  document.getElementById("progress").innerHTML = `<b>${n}</b> / ${GAMES.length} fully rated`;
+}
+
+/* ---- rater name ---------------------------------------------------------- */
+const who = document.getElementById("who");
+who.value = state.who || "";
+who.addEventListener("input", ()=>{ state.who = who.value; save(); });
+
+/* ---- CSV export ---------------------------------------------------------- */
+function csvCell(v){ v = (v==null?"":String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+function exportCSV(){
+  const date = new Date().toISOString().slice(0,10);
+  const header = ["Rater","Date","Game","Convenience","Replayability","Overall Enjoyment"];
+  const rows = [header];
+  GAMES.forEach(g=>{
+    const r = state.ratings[g.slug] || {};
+    rows.push([state.who||"", date, g.name, r.eatability||"", r.replayability||"", r.overall||""]);
+  });
+  const csv = rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+  const blob = new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  const safe = (state.who||"survey").trim().replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase() || "survey";
+  a.href = URL.createObjectURL(blob);
+  a.download = `bgtiers-${safe}-${date}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  toast("CSV exported");
+}
+document.getElementById("export").addEventListener("click", exportCSV);
+
+/* ---- reset --------------------------------------------------------------- */
+document.getElementById("clear").addEventListener("click", ()=>{
+  if(!confirm("Clear all tier ratings? (Your name stays.)")) return;
+  state.ratings = {};
+  document.querySelectorAll(".tier.on").forEach(b=>b.classList.remove("on"));
+  document.querySelectorAll(".card").forEach(updateCardDone);
+  save(); updateProgress(); toast("Ratings cleared");
+});
+
+/* ---- toast --------------------------------------------------------------- */
+let toastT;
+function toast(msg){
+  const el = document.getElementById("toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove("show"), 1600);
+}
+
+updateProgress();
+</script>
+</body>
+</html>
