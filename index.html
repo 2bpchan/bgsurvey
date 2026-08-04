@@ -119,7 +119,6 @@
 const TIERS = ["S","A","B","C","D","F"];
 const CATS = [
   {key:"eatability",    label:"Convenience"},
-  {key:"replayability", label:"Replayability"},
   {key:"overall",       label:"Overall Enjoyment"}
 ];
 // order matches games.txt; slug = image filename in images/<slug>.png
@@ -246,11 +245,11 @@ who.addEventListener("input", ()=>{ state.who = who.value; save(); });
 function csvCell(v){ v = (v==null?"":String(v)); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
 function exportCSV(){
   const date = new Date().toISOString().slice(0,10);
-  const header = ["Rater","Date","Game","Convenience","Replayability","Overall Enjoyment"];
+  const header = ["Rater","Date","Game","Convenience","Overall Enjoyment"];
   const rows = [header];
   GAMES.forEach(g=>{
     const r = state.ratings[g.slug] || {};
-    rows.push([state.who||"", date, g.name, r.eatability||"", r.replayability||"", r.overall||""]);
+    rows.push([state.who||"", date, g.name, r.eatability||"", r.overall||""]);
   });
   const csv = rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
   const blob = new Blob(["﻿"+csv], {type:"text/csv;charset=utf-8"});

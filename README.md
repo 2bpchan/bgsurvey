@@ -8,11 +8,11 @@ across three categories, then exporting the results as CSV.
 Just open **`index.html`** in any browser (double-click it — no server, no internet needed).
 
 - Enter your name (optional), then tap a tier letter for each category on every game.
-- **Categories:** Convenience (ease of setup/teardown + how easy it is to play while eating) · Replayability · Overall Enjoyment.
+- **Categories:** Convenience (ease of setup/teardown + how easy it is to play while eating) · Overall Enjoyment.
 - Tap a selected letter again to clear it.
 - Everything auto-saves in the browser (localStorage), so you can close and come back.
 - **Export CSV** downloads a spreadsheet: one row per game with columns
-  `Rater, Date, Game, Convenience, Replayability, Overall Enjoyment`.
+  `Rater, Date, Game, Convenience, Overall Enjoyment`.
 - **Reset** clears all tier picks (your name stays).
 
 ## Images
