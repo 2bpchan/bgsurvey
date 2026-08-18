@@ -15,6 +15,16 @@ Just open **`index.html`** in any browser (double-click it — no server, no int
   `Rater, Date, Game, Convenience, Overall Enjoyment`.
 - **Reset** clears all tier picks (your name stays).
 
+## Tallying everyone up
+
+1. **`aggregate.html`** — drop in everyone's exported CSVs. Tier letters become points
+   (S 13 · A 8 · B 5 · C 3 · D 2 · F 1), summed per category and overall, then ranked.
+   **Export totals CSV** saves that table as `Rank, Game, …categories…, Total`.
+2. **`results.html`** — drop in that totals CSV to see the final standings: a medal podium for the
+   top three, then every game ranked with box art, a bar per total, and the points behind each
+   category. Click a category chip to re-rank by it. The last file loaded is remembered in this
+   browser, and **Clear** forgets it.
+
 ## Images
 
 Box art lives in **`images/<slug>.png`** and was pulled from BoardGameGeek. Games whose art
